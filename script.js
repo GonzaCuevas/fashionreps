@@ -1554,6 +1554,8 @@ const SUPABASE_REST_URL = `${SUPABASE_URL}/rest/v1`;
 const AUTHORIZED_ORIGINS = [
     'https://fashionreps.vercel.app',
     'https://www.fashionreps.vercel.app',
+    'https://repshub.vercel.app',
+    'https://www.repshub.vercel.app',
     'http://localhost',
     'http://127.0.0.1',
     'http://localhost:3000',
@@ -1590,8 +1592,10 @@ function isAuthorizedOrigin() {
         return true;
     }
     
-    // Verificar dominio de Vercel (fashionreps.vercel.app)
-    if (currentHostname.includes('fashionreps.vercel.app')) {
+    // Verificar dominios de Vercel autorizados (fashionreps o repshub)
+    if (currentHostname.includes('fashionreps.vercel.app') || 
+        currentHostname.includes('repshub.vercel.app') ||
+        currentHostname.includes('repshub')) {
         return true;
     }
     
