@@ -1,7 +1,7 @@
 {
   "name": "repshubs",
   "version": "1.0.0",
-  "description": "Fashion Reps - Sitio web para descubrir los mejores productos REPS desde China",
+  "description": "RepsHub - Sitio web para descubrir los mejores productos REPS desde China",
   "main": "index.html",
   "scripts": {},
   "dependencies": {
@@ -9,6 +9,6 @@
     "dotenv": "^16.3.1"
   },
   "keywords": ["fashion", "reps", "ecommerce", "china", "hubbuy", "supabase"],
-  "author": "Fashion Reps",
+  "author": "RepsHub",
   "license": "ISC"
 }

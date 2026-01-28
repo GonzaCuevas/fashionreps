@@ -88,11 +88,25 @@ window.addEventListener('scroll', () => {
 // ============================================
 
 if (mobileMenuToggle) {
-    // Update header height on load and resize
+    let isMenuOpen = false;
+    
+    // Update header height and menu position on load and resize
     function updateMobileMenuPosition() {
         if (window.innerWidth <= 767 && header && navList) {
-            const headerHeight = header.offsetHeight;
+            const headerRect = header.getBoundingClientRect();
+            const headerHeight = headerRect.height;
+            const headerTop = headerRect.top;
+            
+            // Actualizar la variable CSS con la altura del header
             document.documentElement.style.setProperty('--header-height', `${headerHeight}px`);
+            
+            // Si el menú está abierto, actualizar su posición para que siempre esté debajo del header
+            if (isMenuOpen && navList.classList.contains('active')) {
+                // Calcular la posición correcta del menú basada en la posición actual del header
+                const menuTop = headerTop + headerHeight;
+                navList.style.top = `${menuTop}px`;
+                navList.style.height = `calc(100vh - ${menuTop}px)`;
+            }
         }
     }
     
@@ -106,15 +120,31 @@ if (mobileMenuToggle) {
     // Update on resize
     window.addEventListener('resize', throttle(updateMobileMenuPosition, 100));
     
-    // Update on scroll (header height might change)
-    window.addEventListener('scroll', throttle(updateMobileMenuPosition, 100), { passive: true });
+    // Update on scroll - mantener el menú visible y actualizar posición
+    window.addEventListener('scroll', throttle(() => {
+        if (window.innerWidth <= 767 && isMenuOpen && navList.classList.contains('active')) {
+            updateMobileMenuPosition();
+        }
+    }, 50), { passive: true });
     
     mobileMenuToggle.addEventListener('click', () => {
-        // Update position before opening menu
+        // Update position before opening/closing menu
         updateMobileMenuPosition();
         
+        // Toggle menu state
+        const wasOpen = navList.classList.contains('active');
         navList.classList.toggle('active');
         mobileMenuToggle.classList.toggle('active');
+        isMenuOpen = !wasOpen;
+        
+        // Prevenir scroll del body cuando el menú está abierto
+        if (isMenuOpen) {
+            document.body.style.overflow = 'hidden';
+            // Actualizar posición después de abrir para asegurar que esté correcta
+            setTimeout(() => updateMobileMenuPosition(), 10);
+        } else {
+            document.body.style.overflow = '';
+        }
         
         // Animate hamburger icon
         const spans = mobileMenuToggle.querySelectorAll('span');
@@ -129,12 +159,35 @@ if (mobileMenuToggle) {
         }
     });
     
+    // Cerrar menú al hacer click fuera de él
+    document.addEventListener('click', (e) => {
+        if (window.innerWidth <= 767 && isMenuOpen && navList.classList.contains('active')) {
+            const isClickInsideMenu = navList.contains(e.target);
+            const isClickOnToggle = mobileMenuToggle.contains(e.target);
+            
+            if (!isClickInsideMenu && !isClickOnToggle) {
+                navList.classList.remove('active');
+                mobileMenuToggle.classList.remove('active');
+                isMenuOpen = false;
+                document.body.style.overflow = '';
+                
+                // Reset hamburger icon
+                const spans = mobileMenuToggle.querySelectorAll('span');
+                spans[0].style.transform = 'none';
+                spans[1].style.opacity = '1';
+                spans[2].style.transform = 'none';
+            }
+        }
+    });
+    
     // Close mobile menu when clicking on a link
     const navLinks = document.querySelectorAll('.nav-link');
     navLinks.forEach(link => {
         link.addEventListener('click', () => {
             navList.classList.remove('active');
             mobileMenuToggle.classList.remove('active');
+            isMenuOpen = false;
+            document.body.style.overflow = '';
             const spans = mobileMenuToggle.querySelectorAll('span');
             spans[0].style.transform = 'none';
             spans[1].style.opacity = '1';
@@ -330,12 +383,12 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
         
-        // Set initial state (expanded by default)
-        header.setAttribute('aria-expanded', 'true');
+        // Set initial state (closed by default)
+        header.setAttribute('aria-expanded', 'false');
         const section = header.getAttribute('data-section');
         const content = document.getElementById(`${section}Content`);
         if (content) {
-            content.classList.add('expanded');
+            content.classList.remove('expanded');
         }
     });
     

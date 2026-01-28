@@ -472,10 +472,12 @@ body {
     padding: var(--spacing-lg);
     box-shadow: -4px 0 20px rgba(0,0,0,.5);
     transform: translateX(100%);
-    transition: transform var(--transition-base);
+    transition: transform var(--transition-base), top 0.1s ease-out;
     gap: var(--spacing-md);
     z-index: 1001;
     overflow-y: auto;
+    /* Permitir que JavaScript actualice la posición dinámicamente */
+    will-change: top, transform;
   }
   
   .nav-link {

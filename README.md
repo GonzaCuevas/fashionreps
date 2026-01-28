@@ -1,4 +1,4 @@
-# Fashion Reps
+# RepsHub
 
 Sitio web para descubrir los mejores productos REPS desde China. Incluye catálogo de productos, calculadora de impuestos y guías de compra.
 
