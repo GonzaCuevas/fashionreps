@@ -1,0 +1,16 @@
+{
+  "name": "repshubs",
+  "version": "1.0.0",
+  "description": "Fashion Reps - Sitio web para descubrir los mejores productos REPS desde China",
+  "main": "index.html",
+  "scripts": {
+    "build": "echo 'Static site - no build needed'"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.39.0",
+    "dotenv": "^16.3.1"
+  },
+  "keywords": ["fashion", "reps", "ecommerce", "china", "hubbuy", "supabase"],
+  "author": "Fashion Reps",
+  "license": "ISC"
+}
