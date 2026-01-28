@@ -1497,6 +1497,122 @@ const SUPABASE_URL = "https://szohpkcgubckxoauspmr.supabase.co";
 const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InN6b2hwa2NndWJja3hvYXVzcG1yIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njk0NTMwNTksImV4cCI6MjA4NTAyOTA1OX0.bSbr61juTNd0Y4LchHjT2YbvCl-uau2GN83V-2HhkWE";
 const SUPABASE_REST_URL = `${SUPABASE_URL}/rest/v1`;
 
+// ===== DOMINIOS AUTORIZADOS PARA ACCESO A BASE DE DATOS =====
+const AUTHORIZED_ORIGINS = [
+    'https://fashionreps.vercel.app',
+    'https://www.fashionreps.vercel.app',
+    'http://localhost',
+    'http://127.0.0.1',
+    'http://localhost:3000',
+    'http://localhost:8080',
+    'http://localhost:5500'
+];
+
+// Función para validar el origen/autorización
+function isAuthorizedOrigin() {
+    const currentOrigin = window.location.origin;
+    const currentHostname = window.location.hostname;
+    
+    // Verificar origen exacto
+    if (AUTHORIZED_ORIGINS.includes(currentOrigin)) {
+        return true;
+    }
+    
+    // Verificar hostname (para casos con puertos diferentes)
+    const authorizedHostnames = AUTHORIZED_ORIGINS.map(origin => {
+        try {
+            return new URL(origin).hostname;
+        } catch {
+            return origin.replace(/^https?:\/\//, '').replace(/:\d+$/, '');
+        }
+    });
+    
+    // Permitir localhost en desarrollo
+    if (currentHostname === 'localhost' || currentHostname === '127.0.0.1') {
+        return true;
+    }
+    
+    // Verificar si el hostname está autorizado
+    if (authorizedHostnames.includes(currentHostname)) {
+        return true;
+    }
+    
+    // Verificar dominio de Vercel (fashionreps.vercel.app)
+    if (currentHostname.includes('fashionreps.vercel.app')) {
+        return true;
+    }
+    
+    return false;
+}
+
+// Función wrapper para peticiones a Supabase con validación de origen
+async function secureSupabaseFetch(url, options = {}) {
+    // Validar origen antes de hacer la petición
+    if (!isAuthorizedOrigin()) {
+        const errorMsg = '🚫 Acceso denegado: Este sitio no está autorizado para acceder a la base de datos.';
+        console.error(errorMsg);
+        console.error('Origen actual:', window.location.origin);
+        console.error('Hostname actual:', window.location.hostname);
+        console.error('Dominios autorizados:', AUTHORIZED_ORIGINS);
+        
+        // Mostrar mensaje de error visible al usuario
+        showUnauthorizedError();
+        
+        throw new Error('Acceso no autorizado: Este sitio no tiene permiso para acceder a la base de datos.');
+    }
+    
+    // Agregar headers de seguridad adicionales
+    const secureHeaders = {
+        ...options.headers,
+        'Origin': window.location.origin,
+        'Referer': window.location.href
+    };
+    
+    // Realizar la petición con headers seguros
+    return fetch(url, {
+        ...options,
+        headers: secureHeaders
+    });
+}
+
+// Función para mostrar error de acceso no autorizado
+function showUnauthorizedError() {
+    // Crear elemento de error si no existe
+    let errorDiv = document.getElementById('unauthorized-error');
+    if (!errorDiv) {
+        errorDiv = document.createElement('div');
+        errorDiv.id = 'unauthorized-error';
+        errorDiv.style.cssText = `
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            background: linear-gradient(135deg, #ff0000 0%, #cc0000 100%);
+            color: white;
+            padding: 20px;
+            text-align: center;
+            z-index: 99999;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            font-size: 16px;
+            font-weight: bold;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+        `;
+        errorDiv.innerHTML = `
+            <div style="max-width: 1200px; margin: 0 auto;">
+                <p style="margin: 0 0 10px 0;">⚠️ Acceso Denegado</p>
+                <p style="margin: 0; font-size: 14px; font-weight: normal;">
+                    Este sitio no está autorizado para acceder a la base de datos.
+                    Solo los dominios autorizados pueden realizar consultas.
+                </p>
+            </div>
+        `;
+        document.body.insertBefore(errorDiv, document.body.firstChild);
+        
+        // Bloquear scroll cuando hay error
+        document.body.style.overflow = 'hidden';
+    }
+}
+
 // Helper para escapar HTML
 function escapeHtml(str) {
     return String(str ?? "")
@@ -1813,7 +1929,7 @@ async function loadFeaturedProducts() {
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), 10000);
         
-        const res = await fetch(query, {
+        const res = await secureSupabaseFetch(query, {
             headers: headers,
             signal: controller.signal,
         });
@@ -2032,7 +2148,7 @@ async function loadProductsFromAPI(page = 1, pageSize = 36, filters = {}) {
     const timeoutId = setTimeout(() => controller.abort(), 8000); // Reducido a 8s para mejor UX
 
     try {
-        const res = await fetch(query, {
+        const res = await secureSupabaseFetch(query, {
             headers: headers,
             signal: controller.signal,
             // Agregar cache para mejorar rendimiento
@@ -2294,4 +2410,92 @@ if (document.readyState === 'loading') {
     initProductLoading();
 }
 
-  
+// ============================================
+// PROTECCIÓN CONTRA COPIA DE CONTENIDO
+// ============================================
+
+// Desactivar click derecho (menú contextual)
+document.addEventListener('contextmenu', function(e) {
+    e.preventDefault();
+    return false;
+});
+
+// Desactivar selección de texto
+document.addEventListener('selectstart', function(e) {
+    e.preventDefault();
+    return false;
+});
+
+// Desactivar drag and drop
+document.addEventListener('dragstart', function(e) {
+    e.preventDefault();
+    return false;
+});
+
+// Desactivar atajos de teclado comunes para copiar
+document.addEventListener('keydown', function(e) {
+    // Desactivar Ctrl+C, Ctrl+A, Ctrl+S, Ctrl+P, Ctrl+U, F12
+    if (e.ctrlKey && (e.key === 'c' || e.key === 'C' || 
+                      e.key === 'a' || e.key === 'A' || 
+                      e.key === 's' || e.key === 'S' || 
+                      e.key === 'p' || e.key === 'P' || 
+                      e.key === 'u' || e.key === 'U')) {
+        e.preventDefault();
+        return false;
+    }
+    
+    // Desactivar F12 (DevTools)
+    if (e.key === 'F12') {
+        e.preventDefault();
+        return false;
+    }
+    
+    // Desactivar Ctrl+Shift+I, Ctrl+Shift+J, Ctrl+Shift+C (DevTools)
+    if (e.ctrlKey && e.shiftKey && (e.key === 'I' || e.key === 'J' || e.key === 'C')) {
+        e.preventDefault();
+        return false;
+    }
+    
+    // Desactivar Ctrl+U (ver código fuente)
+    if (e.ctrlKey && e.key === 'u') {
+        e.preventDefault();
+        return false;
+    }
+});
+
+// Prevenir copia mediante eventos de clipboard
+document.addEventListener('copy', function(e) {
+    e.clipboardData.setData('text/plain', '');
+    e.preventDefault();
+    return false;
+});
+
+// Prevenir cortar
+document.addEventListener('cut', function(e) {
+    e.clipboardData.setData('text/plain', '');
+    e.preventDefault();
+    return false;
+});
+
+// CSS adicional para desactivar selección visual (opcional pero más efectivo)
+const style = document.createElement('style');
+style.textContent = `
+    * {
+        -webkit-user-select: none !important;
+        -moz-user-select: none !important;
+        -ms-user-select: none !important;
+        user-select: none !important;
+        -webkit-touch-callout: none !important;
+        -webkit-tap-highlight-color: transparent !important;
+    }
+    
+    img {
+        pointer-events: none;
+        -webkit-user-drag: none;
+        -khtml-user-drag: none;
+        -moz-user-drag: none;
+        -o-user-drag: none;
+        user-drag: none;
+    }
+`;
+document.head.appendChild(style);
