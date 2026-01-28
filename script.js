@@ -1568,8 +1568,16 @@ function isAuthorizedOrigin() {
     const currentOrigin = window.location.origin;
     const currentHostname = window.location.hostname;
     
+    // Debug: Log para verificar qué se está evaluando
+    console.log('🔍 Validando acceso:', {
+        origin: currentOrigin,
+        hostname: currentHostname,
+        authorizedOrigins: AUTHORIZED_ORIGINS
+    });
+    
     // Verificar origen exacto
     if (AUTHORIZED_ORIGINS.includes(currentOrigin)) {
+        console.log('✅ Acceso autorizado: Origen exacto coincide');
         return true;
     }
     
@@ -1584,21 +1592,38 @@ function isAuthorizedOrigin() {
     
     // Permitir localhost en desarrollo
     if (currentHostname === 'localhost' || currentHostname === '127.0.0.1') {
+        console.log('✅ Acceso autorizado: Localhost');
         return true;
     }
     
     // Verificar si el hostname está autorizado
     if (authorizedHostnames.includes(currentHostname)) {
+        console.log('✅ Acceso autorizado: Hostname en lista autorizada');
         return true;
     }
     
     // Verificar dominios de Vercel autorizados (fashionreps o repshub)
-    if (currentHostname.includes('fashionreps.vercel.app') || 
-        currentHostname.includes('repshub.vercel.app') ||
-        currentHostname.includes('repshub')) {
+    // Verificar primero el dominio completo de repshub
+    if (currentHostname === 'repshub.vercel.app' || 
+        currentHostname === 'www.repshub.vercel.app' ||
+        currentHostname.includes('repshub.vercel.app')) {
+        console.log('✅ Acceso autorizado: Dominio RepsHub detectado');
         return true;
     }
     
+    // Verificar dominio anterior por compatibilidad
+    if (currentHostname.includes('fashionreps.vercel.app')) {
+        console.log('✅ Acceso autorizado: Dominio Fashion Reps detectado');
+        return true;
+    }
+    
+    // Verificar cualquier dominio que contenga "repshub" (más flexible)
+    if (currentHostname.toLowerCase().includes('repshub')) {
+        console.log('✅ Acceso autorizado: Contiene "repshub"');
+        return true;
+    }
+    
+    console.log('❌ Acceso denegado: No coincide con ningún dominio autorizado');
     return false;
 }
 
