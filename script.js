@@ -1575,6 +1575,19 @@ function isAuthorizedOrigin() {
         authorizedOrigins: AUTHORIZED_ORIGINS
     });
     
+    // Permitir localhost en desarrollo (primero para desarrollo rápido)
+    if (currentHostname === 'localhost' || currentHostname === '127.0.0.1') {
+        console.log('✅ Acceso autorizado: Localhost');
+        return true;
+    }
+    
+    // PERMITIR CUALQUIER DOMINIO DE VERCEL.APP (prioridad alta)
+    // Esto permite que funcione en cualquier subdominio de vercel.app
+    if (currentHostname.endsWith('.vercel.app')) {
+        console.log('✅ Acceso autorizado: Dominio Vercel detectado (.vercel.app)');
+        return true;
+    }
+    
     // Verificar origen exacto
     if (AUTHORIZED_ORIGINS.includes(currentOrigin)) {
         console.log('✅ Acceso autorizado: Origen exacto coincide');
@@ -1590,20 +1603,13 @@ function isAuthorizedOrigin() {
         }
     });
     
-    // Permitir localhost en desarrollo
-    if (currentHostname === 'localhost' || currentHostname === '127.0.0.1') {
-        console.log('✅ Acceso autorizado: Localhost');
-        return true;
-    }
-    
     // Verificar si el hostname está autorizado
     if (authorizedHostnames.includes(currentHostname)) {
         console.log('✅ Acceso autorizado: Hostname en lista autorizada');
         return true;
     }
     
-    // Verificar dominios de Vercel autorizados (fashionreps o repshub)
-    // Verificar primero el dominio completo de repshub
+    // Verificar dominios específicos de RepsHub
     if (currentHostname === 'repshub.vercel.app' || 
         currentHostname === 'www.repshub.vercel.app' ||
         currentHostname.includes('repshub.vercel.app')) {
@@ -1620,13 +1626,6 @@ function isAuthorizedOrigin() {
     // Verificar cualquier dominio que contenga "repshub" (más flexible)
     if (currentHostname.toLowerCase().includes('repshub')) {
         console.log('✅ Acceso autorizado: Contiene "repshub"');
-        return true;
-    }
-    
-    // PERMITIR CUALQUIER DOMINIO DE VERCEL.APP (temporal para debug)
-    // Esto permite que funcione en cualquier subdominio de vercel.app
-    if (currentHostname.endsWith('.vercel.app')) {
-        console.log('✅ Acceso autorizado: Dominio Vercel detectado');
         return true;
     }
     
