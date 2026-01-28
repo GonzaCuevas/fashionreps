@@ -1623,6 +1623,13 @@ function isAuthorizedOrigin() {
         return true;
     }
     
+    // PERMITIR CUALQUIER DOMINIO DE VERCEL.APP (temporal para debug)
+    // Esto permite que funcione en cualquier subdominio de vercel.app
+    if (currentHostname.endsWith('.vercel.app')) {
+        console.log('✅ Acceso autorizado: Dominio Vercel detectado');
+        return true;
+    }
+    
     console.log('❌ Acceso denegado: No coincide con ningún dominio autorizado');
     return false;
 }
@@ -2515,31 +2522,36 @@ document.addEventListener('dragstart', function(e) {
 });
 
 // Desactivar atajos de teclado comunes para copiar
+// PERMITIR DevTools en producción para debugging
+const isProductionDomain = window.location.hostname.includes('vercel.app') || 
+                           window.location.hostname.includes('repshub');
+
 document.addEventListener('keydown', function(e) {
-    // Desactivar Ctrl+C, Ctrl+A, Ctrl+S, Ctrl+P, Ctrl+U, F12
+    // En producción, permitir DevTools para debugging
+    if (isProductionDomain) {
+        // Permitir F12 y atajos de DevTools en producción
+        if (e.key === 'F12' || 
+            (e.ctrlKey && e.shiftKey && (e.key === 'I' || e.key === 'J' || e.key === 'C'))) {
+            return; // No bloquear DevTools en producción
+        }
+    } else {
+        // En desarrollo/localhost, bloquear DevTools
+        if (e.key === 'F12') {
+            e.preventDefault();
+            return false;
+        }
+        if (e.ctrlKey && e.shiftKey && (e.key === 'I' || e.key === 'J' || e.key === 'C')) {
+            e.preventDefault();
+            return false;
+        }
+    }
+    
+    // Desactivar Ctrl+C, Ctrl+A, Ctrl+S, Ctrl+P, Ctrl+U
     if (e.ctrlKey && (e.key === 'c' || e.key === 'C' || 
                       e.key === 'a' || e.key === 'A' || 
                       e.key === 's' || e.key === 'S' || 
                       e.key === 'p' || e.key === 'P' || 
                       e.key === 'u' || e.key === 'U')) {
-        e.preventDefault();
-        return false;
-    }
-    
-    // Desactivar F12 (DevTools)
-    if (e.key === 'F12') {
-        e.preventDefault();
-        return false;
-    }
-    
-    // Desactivar Ctrl+Shift+I, Ctrl+Shift+J, Ctrl+Shift+C (DevTools)
-    if (e.ctrlKey && e.shiftKey && (e.key === 'I' || e.key === 'J' || e.key === 'C')) {
-        e.preventDefault();
-        return false;
-    }
-    
-    // Desactivar Ctrl+U (ver código fuente)
-    if (e.ctrlKey && e.key === 'u') {
         e.preventDefault();
         return false;
     }
