@@ -8,7 +8,9 @@ Se ha implementado protección del lado del cliente que valida el origen antes d
 
 Los siguientes dominios están autorizados para acceder a la base de datos:
 
-- `https://fashionreps.vercel.app`
+- `https://repshub.vercel.app` (dominio principal actual)
+- `https://www.repshub.vercel.app`
+- `https://fashionreps.vercel.app` (dominio anterior - mantenido por compatibilidad)
 - `https://www.fashionreps.vercel.app`
 - `http://localhost` (solo para desarrollo)
 - `http://127.0.0.1` (solo para desarrollo)
@@ -39,8 +41,10 @@ Para protección completa, también debes configurar esto en el dashboard de Sup
 ### 2. Configurar CORS en Supabase
 
 1. Ve a **Settings** > **API**
-2. En la sección **CORS**, agrega solo tu dominio:
+2. En la sección **CORS**, agrega tus dominios autorizados:
    ```
+   https://repshub.vercel.app
+   https://www.repshub.vercel.app
    https://fashionreps.vercel.app
    ```
 
