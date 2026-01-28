@@ -2348,4 +2348,3 @@ if (document.readyState === 'loading') {
     initProductLoading();
 }
 
-
